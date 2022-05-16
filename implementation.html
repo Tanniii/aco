@@ -1,0 +1,243 @@
+<br>
+<p><span style="font-family: Arial, Helvetica, sans-serif; color: rgb(166, 10, 8); font-size: 22px;">Ant Colony Optimization | TSP</span></p>
+<br>
+<div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="font-weight: bold">public</span> <span style="font-weight: bold">enum</span> Configuration {
+    INSTANCE;
+
+    <span style="font-style: italic">// random generator</span>
+    <span style="font-weight: bold">public</span> <span style="font-weight: bold">final</span> MersenneTwisterFast randomGenerator = <span style="font-weight: bold">new</span> MersenneTwisterFast(System.nanoTime());
+
+    <span style="font-style: italic">// data</span>
+    <span style="font-weight: bold">public</span> <span style="font-weight: bold">final</span> <span style="font-weight: bold">int</span> numberOfCities = 14;
+
+    <span style="font-style: italic">// algorithm</span>
+    <span style="font-weight: bold">public</span> <span style="font-weight: bold">final</span> <span style="font-weight: bold">double</span> initialPheromoneValue = 1.0;
+    <span style="font-weight: bold">public</span> <span style="font-weight: bold">final</span> <span style="font-weight: bold">double</span> alpha = 2;              <span style="font-style: italic">// pheromone importance</span>
+    <span style="font-weight: bold">public</span> <span style="font-weight: bold">final</span> <span style="font-weight: bold">double</span> beta = 2;               <span style="font-style: italic">// distance priority</span>
+    <span style="font-weight: bold">public</span> <span style="font-weight: bold">final</span> <span style="font-weight: bold">double</span> evaporation = 0.05;
+    <span style="font-weight: bold">public</span> <span style="font-weight: bold">final</span> <span style="font-weight: bold">double</span> q = 500;                <span style="font-style: italic">// pheromone left on trail per ant</span>
+    <span style="font-weight: bold">public</span> <span style="font-weight: bold">final</span> <span style="font-weight: bold">double</span> antFactor = 0.8;        <span style="font-style: italic">// no ants per node</span>
+    <span style="font-weight: bold">public</span> <span style="font-weight: bold">final</span> <span style="font-weight: bold">double</span> randomFactor = 0.01;    <span style="font-style: italic">// introducing randomness</span>
+    <span style="font-weight: bold">public</span> <span style="font-weight: bold">final</span> <span style="font-weight: bold">int</span> maximumIterations = 1000;
+    <span style="font-weight: bold">public</span> <span style="font-weight: bold">final</span> <span style="font-weight: bold">int</span> numberOfAnts = (<span style="font-weight: bold">int</span>) (numberOfCities * antFactor);
+}
+</pre></div>
+<br>
+<div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="font-weight: bold">public</span> <span style="font-weight: bold">class</span> <span style="font-weight: bold">Ant</span> {
+    <span style="font-weight: bold">protected</span> <span style="font-weight: bold">int</span> trailSize;
+    <span style="font-weight: bold">protected</span> <span style="font-weight: bold">int</span>[] trail;
+    <span style="font-weight: bold">protected</span> <span style="font-weight: bold">boolean</span>[] visited;
+
+    <span style="font-weight: bold">public</span> Ant(<span style="font-weight: bold">int</span> tourSize) {
+        <span style="font-weight: bold">this</span>.trailSize = tourSize;
+        trail = <span style="font-weight: bold">new</span> <span style="font-weight: bold">int</span>[tourSize];
+        visited = <span style="font-weight: bold">new</span> <span style="font-weight: bold">boolean</span>[tourSize];
+    }
+
+    <span style="font-weight: bold">public</span> <span style="font-weight: bold">void</span> visitCity(<span style="font-weight: bold">int</span> currentIndex, <span style="font-weight: bold">int</span> city) {
+        trail[currentIndex + 1] = city;
+        visited[city] = <span style="font-weight: bold">true</span>;
+    }
+
+    <span style="font-weight: bold">public</span> <span style="font-weight: bold">boolean</span> visited(<span style="font-weight: bold">int</span> i) {
+        <span style="font-weight: bold">return</span> visited[i];
+    }
+
+    <span style="font-weight: bold">public</span> <span style="font-weight: bold">double</span> trailLength(<span style="font-weight: bold">double</span>[][] graph) {
+        <span style="font-weight: bold">double</span> length = graph[trail[trailSize - 1]][trail[0]];
+
+        <span style="font-weight: bold">for</span> (<span style="font-weight: bold">int</span> i = 0; i &lt; trailSize - 1; i++) {
+            length += graph[trail[i]][trail[i + 1]];
+        }
+
+        <span style="font-weight: bold">return</span> length;
+    }
+
+    <span style="font-weight: bold">public</span> <span style="font-weight: bold">void</span> clear() {
+        <span style="font-weight: bold">for</span> (<span style="font-weight: bold">int</span> i = 0; i &lt; trailSize; i++) {
+            visited[i] = <span style="font-weight: bold">false</span>;
+        }
+    }
+}
+</pre></div>
+<br>
+<div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="font-weight: bold">import</span> <span style="font-weight: bold">java.util.ArrayList</span>;
+<span style="font-weight: bold">import</span> <span style="font-weight: bold">java.util.Arrays</span>;
+<span style="font-weight: bold">import</span> <span style="font-weight: bold">java.util.List</span>;
+
+<span style="font-weight: bold">public</span> <span style="font-weight: bold">class</span> <span style="font-weight: bold">AntColonyOptimization</span> {
+    <span style="font-weight: bold">private</span> <span style="font-weight: bold">final</span> <span style="font-weight: bold">double</span>[][] graph;
+    <span style="font-weight: bold">private</span> <span style="font-weight: bold">final</span> <span style="font-weight: bold">double</span>[][] trails;
+    <span style="font-weight: bold">private</span> <span style="font-weight: bold">final</span> List&lt;Ant&gt; ants = <span style="font-weight: bold">new</span> ArrayList&lt;&gt;();
+    <span style="font-weight: bold">private</span> <span style="font-weight: bold">final</span> <span style="font-weight: bold">double</span>[] probabilities;
+    <span style="font-weight: bold">public</span> StringBuilder stringBuilder = <span style="font-weight: bold">new</span> StringBuilder();
+    <span style="font-weight: bold">private</span> <span style="font-weight: bold">int</span> currentIndex;
+
+    <span style="font-weight: bold">private</span> <span style="font-weight: bold">int</span>[] bestTourOrder;
+    <span style="font-weight: bold">private</span> <span style="font-weight: bold">double</span> bestTourLength;
+
+    <span style="font-weight: bold">public</span> AntColonyOptimization() {
+        graph = generateRandomDistanceMatrix(Configuration.INSTANCE.numberOfCities);
+        trails = <span style="font-weight: bold">new</span> <span style="font-weight: bold">double</span>[Configuration.INSTANCE.numberOfCities][Configuration.INSTANCE.numberOfCities];
+        probabilities = <span style="font-weight: bold">new</span> <span style="font-weight: bold">double</span>[Configuration.INSTANCE.numberOfCities];
+
+        <span style="font-weight: bold">for</span> (<span style="font-weight: bold">int</span> i = 0; i &lt; Configuration.INSTANCE.numberOfCities; i++) {
+            ants.add(<span style="font-weight: bold">new</span> Ant(Configuration.INSTANCE.numberOfCities));
+        }
+    }
+
+    <span style="font-weight: bold">private</span> <span style="font-weight: bold">double</span>[][] generateRandomDistanceMatrix(<span style="font-weight: bold">int</span> n) {
+        <span style="font-weight: bold">double</span>[][] distanceMatrix = <span style="font-weight: bold">new</span> <span style="font-weight: bold">double</span>[n][n];
+
+        <span style="font-weight: bold">for</span> (<span style="font-weight: bold">int</span> i = 0; i &lt; n; i++) {
+            <span style="font-weight: bold">for</span> (<span style="font-weight: bold">int</span> j = 0; j &lt; n; j++) {
+                <span style="font-weight: bold">if</span> (i == j) {
+                    distanceMatrix[i][j] = 0;
+                } <span style="font-weight: bold">else</span> {
+                    distanceMatrix[i][j] = Math.abs(Configuration.INSTANCE.randomGenerator.nextInt(100) + 1);
+                }
+            }
+        }
+
+        <span style="font-weight: bold">return</span> distanceMatrix;
+    }
+
+    <span style="font-weight: bold">public</span> <span style="font-weight: bold">void</span> run() {
+        <span style="font-weight: bold">long</span> runtimeStart = System.currentTimeMillis();
+
+        setupAnts();
+        clearTrails();
+
+        <span style="font-weight: bold">for</span> (<span style="font-weight: bold">int</span> i = 0; i &lt; Configuration.INSTANCE.maximumIterations; i++) {
+            moveAnts();
+            updateTrails();
+            updateBest();
+        }
+
+        stringBuilder.append(<span style="font-style: italic">&quot;\nbest tour length | &quot;</span>).append((bestTourLength - Configuration.INSTANCE.numberOfCities));
+        stringBuilder.append(<span style="font-style: italic">&quot;\nbest tour order  | &quot;</span>).append(Arrays.toString(bestTourOrder));
+        stringBuilder.append(<span style="font-style: italic">&quot;\nruntime          | &quot;</span>).append(System.currentTimeMillis() - runtimeStart).append(<span style="font-style: italic">&quot; ms&quot;</span>);
+
+        System.out.println(stringBuilder);
+    }
+
+    <span style="font-weight: bold">private</span> <span style="font-weight: bold">void</span> setupAnts() {
+        <span style="font-weight: bold">for</span> (<span style="font-weight: bold">int</span> i = 0; i &lt; Configuration.INSTANCE.numberOfAnts; i++) {
+            <span style="font-weight: bold">for</span> (Ant ant : ants) {
+                ant.clear();
+                ant.visitCity(-1, Configuration.INSTANCE.randomGenerator.nextInt(Configuration.INSTANCE.numberOfCities));
+            }
+        }
+        currentIndex = 0;
+    }
+
+    <span style="font-weight: bold">private</span> <span style="font-weight: bold">void</span> moveAnts() {
+        <span style="font-weight: bold">for</span> (<span style="font-weight: bold">int</span> i = currentIndex; i &lt; Configuration.INSTANCE.numberOfCities - 1; i++) {
+            <span style="font-weight: bold">for</span> (Ant ant : ants) {
+                ant.visitCity(currentIndex, selectNextCity(ant));
+            }
+            currentIndex++;
+        }
+    }
+
+    <span style="font-weight: bold">private</span> <span style="font-weight: bold">int</span> selectNextCity(Ant ant) {
+        <span style="font-weight: bold">int</span> t = Configuration.INSTANCE.randomGenerator.nextInt(Configuration.INSTANCE.numberOfCities - currentIndex);
+        <span style="font-weight: bold">if</span> (Configuration.INSTANCE.randomGenerator.nextDouble() &lt; Configuration.INSTANCE.randomFactor) {
+            <span style="font-weight: bold">int</span> cityIndex = -999;
+
+            <span style="font-weight: bold">for</span> (<span style="font-weight: bold">int</span> i = 0; i &lt; Configuration.INSTANCE.numberOfCities; i++) {
+                <span style="font-weight: bold">if</span> (i == t &amp;&amp; !ant.visited(i)) {
+                    cityIndex = i;
+                    <span style="font-weight: bold">break</span>;
+                }
+            }
+
+            <span style="font-weight: bold">if</span> (cityIndex != -999) {
+                <span style="font-weight: bold">return</span> cityIndex;
+            }
+        }
+
+        calculateProbabilities(ant);
+
+        <span style="font-weight: bold">double</span> randomNumber = Configuration.INSTANCE.randomGenerator.nextDouble();
+        <span style="font-weight: bold">double</span> total = 0;
+
+        <span style="font-weight: bold">for</span> (<span style="font-weight: bold">int</span> i = 0; i &lt; Configuration.INSTANCE.numberOfCities; i++) {
+            total += probabilities[i];
+            <span style="font-weight: bold">if</span> (total &gt;= randomNumber) {
+                <span style="font-weight: bold">return</span> i;
+            }
+        }
+
+        <span style="font-weight: bold">throw</span> <span style="font-weight: bold">new</span> RuntimeException(<span style="font-style: italic">&quot;runtime exception | other cities&quot;</span>);
+    }
+
+    <span style="font-weight: bold">public</span> <span style="font-weight: bold">void</span> calculateProbabilities(Ant ant) {
+        <span style="font-weight: bold">int</span> i = ant.trail[currentIndex];
+        <span style="font-weight: bold">double</span> pheromone = 0.0;
+
+        <span style="font-weight: bold">for</span> (<span style="font-weight: bold">int</span> l = 0; l &lt; Configuration.INSTANCE.numberOfCities; l++) {
+            <span style="font-weight: bold">if</span> (!ant.visited(l)) {
+                pheromone += Math.pow(trails[i][l], Configuration.INSTANCE.alpha) * Math.pow(1.0 / graph[i][l], Configuration.INSTANCE.beta);
+            }
+        }
+
+        <span style="font-weight: bold">for</span> (<span style="font-weight: bold">int</span> j = 0; j &lt; Configuration.INSTANCE.numberOfCities; j++) {
+            <span style="font-weight: bold">if</span> (ant.visited(j)) {
+                probabilities[j] = 0.0;
+            } <span style="font-weight: bold">else</span> {
+                <span style="font-weight: bold">double</span> numerator = Math.pow(trails[i][j], Configuration.INSTANCE.alpha) * Math.pow(1.0 / graph[i][j], Configuration.INSTANCE.beta);
+                probabilities[j] = numerator / pheromone;
+            }
+        }
+    }
+
+    <span style="font-weight: bold">private</span> <span style="font-weight: bold">void</span> updateTrails() {
+        <span style="font-weight: bold">for</span> (<span style="font-weight: bold">int</span> i = 0; i &lt; Configuration.INSTANCE.numberOfCities; i++) {
+            <span style="font-weight: bold">for</span> (<span style="font-weight: bold">int</span> j = 0; j &lt; Configuration.INSTANCE.numberOfCities; j++) {
+                trails[i][j] *= Configuration.INSTANCE.evaporation;
+            }
+        }
+
+        <span style="font-weight: bold">for</span> (Ant ant : ants) {
+            <span style="font-weight: bold">double</span> contribution = Configuration.INSTANCE.q / ant.trailLength(graph);
+            <span style="font-weight: bold">for</span> (<span style="font-weight: bold">int</span> i = 0; i &lt; Configuration.INSTANCE.numberOfCities - 1; i++) {
+                trails[ant.trail[i]][ant.trail[i + 1]] += contribution;
+            }
+            trails[ant.trail[Configuration.INSTANCE.numberOfCities - 1]][ant.trail[0]] += contribution;
+        }
+    }
+
+    <span style="font-weight: bold">private</span> <span style="font-weight: bold">void</span> updateBest() {
+        <span style="font-weight: bold">if</span> (bestTourOrder == <span style="font-weight: bold">null</span>) {
+            bestTourOrder = ants.get(0).trail;
+            bestTourLength = ants.get(0).trailLength(graph);
+        }
+
+        <span style="font-weight: bold">for</span> (Ant ant : ants) {
+            <span style="font-weight: bold">if</span> (ant.trailLength(graph) &lt; bestTourLength) {
+                bestTourLength = ant.trailLength(graph);
+                bestTourOrder = ant.trail.clone();
+            }
+        }
+    }
+
+    <span style="font-weight: bold">private</span> <span style="font-weight: bold">void</span> clearTrails() {
+        <span style="font-weight: bold">for</span> (<span style="font-weight: bold">int</span> i = 0; i &lt; Configuration.INSTANCE.numberOfCities; i++) {
+            <span style="font-weight: bold">for</span> (<span style="font-weight: bold">int</span> j = 0; j &lt; Configuration.INSTANCE.numberOfCities; j++) {
+                trails[i][j] = Configuration.INSTANCE.initialPheromoneValue;
+            }
+        }
+    }
+}
+</pre></div>
+<br>
+<div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="font-weight: bold">public</span> <span style="font-weight: bold">class</span> <span style="font-weight: bold">Application</span> {
+    <span style="font-weight: bold">public</span> <span style="font-weight: bold">static</span> <span style="font-weight: bold">void</span> main(String... args) {
+        AntColonyOptimization aco = <span style="font-weight: bold">new</span> AntColonyOptimization();
+        aco.run();
+    }
+}
+</pre></div>
+<br>
+<p><span style="font-family: Arial, Helvetica, sans-serif; font-size: 11px;">Prof. Dr. Carsten M&uuml;ller <span style="color: rgb(166, 10, 8);">|</span> Software Engineering</span></p>

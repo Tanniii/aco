@@ -1,0 +1,31 @@
+best tour length | 169.0
+best tour order  | [8, 6, 0, 5, 9, 10, 4, 3, 1, 2, 7, 11]
+runtime          | 23 ms
+
+--- branch and bound
+    permutations = 1864
+    route | 11 3 4 6 0 5 9 10 8 1 2 7 11
+    cost = 170.0
+    runtime = 757 ms
+
+
+best tour length | 229.0
+best tour order  | [4, 5, 7, 2, 10, 3, 0, 11, 1, 12, 9, 6, 8]
+runtime          | 28 ms
+
+--- branch and bound
+    permutations = 22697
+    route | 12 4 9 6 3 8 5 7 2 10 0 11 1 12
+    cost = 222.0
+    runtime = 4204 ms
+
+
+best tour length | 218.0
+best tour order  | [6, 1, 11, 9, 0, 8, 5, 10, 2, 4, 7, 3, 12, 13]
+runtime          | 31 ms
+
+--- branch and bound
+    permutations = 6015
+    route | 13 1 0 10 3 11 2 5 12 9 6 8 4 7 13
+    cost = 214.0
+    runtime = 10430 ms
