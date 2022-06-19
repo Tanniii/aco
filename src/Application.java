@@ -8,6 +8,7 @@ public class Application {
     public static void main(String... args) {
         AntColonyOptimization aco = new AntColonyOptimization(loadCities());
         aco.run();
+        Logger.loggerStart();
     }
 
     private static List<City> loadCities() {
