@@ -52,11 +52,8 @@ public class AntColonyOptimization {
         clearTrails();
 
         for (int i = 0; i < Configuration.INSTANCE.maximumIterations; i++) {
-            System.out.println(1);
             moveAnts();
-            System.out.println(2);
             updateTrails();
-            System.out.println(3);
             updateBest();
         }
 

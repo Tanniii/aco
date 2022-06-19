@@ -21,7 +21,7 @@ public class Application {
 
                 if(i > 5 && i <286) {
                     String[] values = line.trim().split("\s+");
-                    cities.add(new City(Integer.parseInt(values[1]), Integer.parseInt(values[2]), values[0]));
+                    cities.add(new City(Integer.parseInt(values[0]), Integer.parseInt(values[1]), values[2]));
                 }
                 i++;
             }
