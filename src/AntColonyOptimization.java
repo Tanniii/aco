@@ -5,13 +5,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class AntColonyOptimization {
-    private final static Logger logger = Logger.getLogger(AntColonyOptimization.class.getName());
+    final static Logger logger = Logger.getLogger(AntColonyOptimization.class.getName());
     private final List<City> cities;
     private final double[][] graph;
     private final double[][] trails;
     private final List<Ant> ants = new ArrayList<>();
     private final double[] probabilities;
-    public StringBuilder stringBuilder = new StringBuilder();
+    public static StringBuilder stringBuilder = new StringBuilder();
     private int currentIndex;
 
     private int[] bestTourOrder;
