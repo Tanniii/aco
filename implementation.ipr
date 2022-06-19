@@ -12,6 +12,11 @@
     </profile>
     <version value="1.0" />
   </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="implementation" options="--add-modules java.base,java.logging" />
+    </option>
+  </component>
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/implementation.iml" filepath="$PROJECT_DIR$/implementation.iml" />
