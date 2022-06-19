@@ -11,7 +11,7 @@ public class LoggerClass {
         LOGGER = Logger.getLogger("MyLog");
         LOGGER.setLevel(Level.ALL);
         try {
-            FileHandler fileHandler = new FileHandler("BruteForce.log");
+            FileHandler fileHandler = new FileHandler("ACO.log");
             fileHandler.setFormatter(new SimpleFormatter());
 
             fileHandler.setLevel(Level.ALL);
