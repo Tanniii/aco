@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 
 public class AntColonyOptimization {
 
-    private static final Logger log = Logger.getLogger(AntColonyOptimization.class.getName());
+   private static final Logger log = Logger.getLogger(AntColonyOptimization.class.getName());
     private final Parameters paramConfig;
     private final ExecutorService executor;
     private final double[][] distanceMatrix;
@@ -113,7 +113,7 @@ public class AntColonyOptimization {
     private void updateBestSolution(List<Trail> trails) {
         var bestTrail = findBestTrail(trails);
         if (bestTrail.length() < bestTrailLength) {
-            log.log(Level.INFO, "Update bestTrail with length " + bestTrail.length() + ": " +
+            LoggerClass.LOGGER.log(Level.INFO, "Update bestTrail with length " + bestTrail.length() + ": " +
                     bestTrail.getRoute(bestTrail.getAnt().getId()));
             this.bestTrail = bestTrail;
             this.bestTrailLength = bestTrail.length();

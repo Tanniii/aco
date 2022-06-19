@@ -8,6 +8,8 @@ import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static aco.LoggerClass.loggerStart;
+
 public class App {
 
     private static final Logger LOGGER = Logger.getLogger(App.class.getName());
@@ -15,15 +17,17 @@ public class App {
     public static void main(String[] args) {
         Parameters paramConfig = Configuration.INSTANCE.defaultParamConfig;
         long startTime = System.currentTimeMillis();
+        loggerStart();
         Route bestRoute = run(paramConfig);
         double deltaInSeconds = ((System.currentTimeMillis() - startTime) / 1000.0);
-        LOGGER.log(Level.INFO, "Best route found in " + deltaInSeconds + "s" + " with total length " +
+        LoggerClass.LOGGER.log(Level.INFO, "Best route found in " + deltaInSeconds + "s" + " with total length " +
                 bestRoute.getTotal() + ": " + bestRoute);
+
     }
 
     public static Route run(Parameters paramConfig) {
        List<City> cities = loadCities();
-       LOGGER.log(Level.INFO, "Problem: " + cities.size() + " cities");
+        LOGGER.log(Level.INFO, "Problem: " + cities.size() + " cities");
         AntColonyOptimization optimizer = new AntColonyOptimization(cities, paramConfig);
         return optimizer.run();
     }
