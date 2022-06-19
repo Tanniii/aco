@@ -1,43 +1,49 @@
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
 public class AntColonyOptimization {
-    private final static Logger logger = Logger.getLogger(AntColonyOptimization.class.getName());
+
+    private static final Logger log = Logger.getLogger(AntColonyOptimization.class.getName());
+    private final Parameters paramConfig;
+    private final ExecutorService executor;
+    private final double[][] distanceMatrix;
+    private final double[][] pheromoneMatrix;
     private final List<City> cities;
-    private final double[][] graph;
-    private final double[][] trails;
-    private final List<Ant> ants = new ArrayList<>();
-    private final double[] probabilities;
-    public StringBuilder stringBuilder = new StringBuilder();
-    private int currentIndex;
+    private final List<Callable<Trail>> antPossibleSol;
+    private Trail bestTrail;
+    private double bestTrailLength;
 
-    private int[] bestTourOrder;
-    private double bestTourLength;
-
-    public AntColonyOptimization( List<City> cities) {
+    public AntColonyOptimization(List<City> cities, Parameters paramConfig) {
+        bestTrail = null;
+        bestTrailLength = Double.MAX_VALUE;
         this.cities = cities;
-        graph = generateRandomDistanceMatrix(Configuration.INSTANCE.numberOfCities);
-        trails = new double[Configuration.INSTANCE.numberOfCities][Configuration.INSTANCE.numberOfCities];
-        probabilities = new double[Configuration.INSTANCE.numberOfCities];
+        this.paramConfig = paramConfig;
+        executor = Executors.newFixedThreadPool(Configuration.INSTANCE.threads);
+        antPossibleSol = new ArrayList<>();
 
-        for (int i = 0; i < Configuration.INSTANCE.numberOfCities; i++) {
-            ants.add(new Ant(Configuration.INSTANCE.numberOfCities));
-        }
+        distanceMatrix = generateDistanceMatrix(cities);
+        pheromoneMatrix = new double[cities.size()][cities.size()];
     }
 
-    private double[][] generateRandomDistanceMatrix(int n) {
-        double[][] distanceMatrix = new double[n][n];
+    private double[][] generateDistanceMatrix(List<City> cities) {
+        var numOfNodes = cities.size();
+        var distanceMatrix = new double[numOfNodes][numOfNodes];
 
-        for (int i = 0; i < n; i++) {
-            for (int j = 0; j < n; j++) {
+        for (int i = 0; i < numOfNodes; i++) {
+            for (int j = 0; j < numOfNodes; j++) {
                 if (i == j) {
                     distanceMatrix[i][j] = 0;
                 } else {
-                    double temp= Math.sqrt(Math.pow(cities.get(i).getX() - cities.get(j).getX(), 2) + Math.pow(cities.get(i).getY() - cities.get(j).getY(), 2));
-                    distanceMatrix[i][j] = temp;
+                    City from = cities.get(i);
+                    City to = cities.get(j);
+                    distanceMatrix[i][j] = from.distance(to);
                 }
             }
         }
@@ -45,137 +51,144 @@ public class AntColonyOptimization {
         return distanceMatrix;
     }
 
-    public void run() {
-        long runtimeStart = System.currentTimeMillis();
-
-        setupAnts();
-        clearTrails();
-
-        for (int i = 0; i < Configuration.INSTANCE.maximumIterations; i++) {
-            moveAnts();
-            updateTrails();
-            updateBest();
-        }
-
-        stringBuilder.append("\nbest tour length | ").append((bestTourLength - Configuration.INSTANCE.numberOfCities));
-        stringBuilder.append("\nbest tour order  | ").append(Arrays.toString(bestTourOrder));
-        stringBuilder.append("\nruntime          | ").append(System.currentTimeMillis() - runtimeStart).append(" ms");
-
-        System.out.println(stringBuilder);
-    }
 
     private void setupAnts() {
-        for (int i = 0; i < Configuration.INSTANCE.numberOfAnts; i++) {
-            for (Ant ant : ants) {
-                ant.clear();
-                ant.visitCity(-1, Configuration.INSTANCE.randomGenerator.nextInt(Configuration.INSTANCE.numberOfCities));
-            }
-        }
-        currentIndex = 0;
-    }
+        var numOfAnts = (int) (paramConfig.antsPerNode() * cities.size());
 
-    private void moveAnts() {
-        for (int i = currentIndex; i < Configuration.INSTANCE.numberOfCities - 1; i++) {
-            for (Ant ant : ants) {
-                ant.visitCity(currentIndex, selectNextCity(ant));
-            }
-            currentIndex++;
+        antPossibleSol.clear();
+        for (int i = 0; i < numOfAnts; i++) {
+            antPossibleSol.add(
+                    new Ant(i,this).trailWalker(pheromoneMatrix));
         }
     }
 
-    private int selectNextCity(Ant ant) {
-        int t = Configuration.INSTANCE.randomGenerator.nextInt(Configuration.INSTANCE.numberOfCities - currentIndex);
-        if (Configuration.INSTANCE.randomGenerator.nextDouble() < Configuration.INSTANCE.randomFactor) {
-            int cityIndex = -999;
 
-            for (int i = 0; i < Configuration.INSTANCE.numberOfCities; i++) {
-                if (i == t && !ant.visited(i)) {
-                    cityIndex = i;
-                    break;
+    private List<Trail> searchAntSolutions() {
+        var trails = new ArrayList<Trail>();
+        try {
+            for (var future : executor.invokeAll(antPossibleSol)) {
+                trails.add(future.get());
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            log.log(Level.SEVERE, "Error while execution: " + e.getMessage());
+        }
+
+        return trails;
+    }
+
+    private void initPheromoneMatrix() {
+        log.log(Level.CONFIG, "Initialize pheromone matrix with " + paramConfig.initialPheromoneValue());
+        for (int i = 0; i < cities.size(); i++) {
+            for (int j = 0; j < cities.size(); j++) {
+                pheromoneMatrix[i][j] = paramConfig.initialPheromoneValue();
+            }
+        }
+    }
+
+    private void updatePheromoneMatrix(List<Trail> trails) {
+        // Evaporate the values
+        for (int i = 0; i < cities.size(); i++) {
+            for (int j = 0; j < cities.size(); j++) {
+                pheromoneMatrix[i][j] *= (1.0 - paramConfig.evaporation());
+            }
+        }
+                for (Trail trail : trails) {
+                    updatePheromoneMatrixForTrail(trail);
                 }
-            }
 
-            if (cityIndex != -999) {
-                return cityIndex;
-            }
-        }
-
-        calculateProbabilities(ant);
-
-        double randomNumber = Configuration.INSTANCE.randomGenerator.nextDouble();
-        double total = 0;
-
-        for (int i = 0; i < Configuration.INSTANCE.numberOfCities; i++) {
-            total += probabilities[i];
-            if (total >= randomNumber) {
-                return i;
-            }
-        }
-
-        for (int i = 0; i < Configuration.INSTANCE.numberOfCities; i++) {
-            if(ant.visited[i] ==false)
-                return i;
-        }
-//return 0;
-        throw new RuntimeException("runtime exception | other cities");
     }
 
-    public void calculateProbabilities(Ant ant) {
-        int i = ant.trail[currentIndex];
-        double pheromone = 0.0;
-
-        for (int l = 0; l < Configuration.INSTANCE.numberOfCities; l++) {
-            if (!ant.visited(l)) {
-                pheromone += Math.pow(trails[i][l], Configuration.INSTANCE.alpha) * Math.pow(1.0 / graph[i][l], Configuration.INSTANCE.beta);
-            }
+    private void updatePheromoneMatrixForTrail(Trail trail) {
+        var contribution = paramConfig.q() / trail.length();
+        log.log(Level.FINEST, "Add contribution for trail of ant " + trail.getAnt().getId() +
+                " to pheromone matrix: " + contribution);
+        for (int i = 0; i < cities.size() - 1; i++) {
+            pheromoneMatrix[trail.getCityIndex(i)][trail.getCityIndex(i + 1)] += contribution;
         }
+        pheromoneMatrix[trail.getCityIndex(cities.size() - 1)][trail.getCityIndex(0)] += contribution;
+    }
 
-        for (int j = 0; j < Configuration.INSTANCE.numberOfCities; j++) {
-            if (ant.visited(j)) {
-                probabilities[j] = 0.0;
-            } else {
-                double numerator = Math.pow(trails[i][j], Configuration.INSTANCE.alpha) * Math.pow(1.0 / graph[i][j], Configuration.INSTANCE.beta);
-                probabilities[j] = numerator / pheromone;
-            }
+    private void updateBestSolution(List<Trail> trails) {
+        var bestTrail = findBestTrail(trails);
+        if (bestTrail.length() < bestTrailLength) {
+            log.log(Level.INFO, "Update bestTrail with length " + bestTrail.length() + ": " +
+                    bestTrail.getRoute(bestTrail.getAnt().getId()));
+            this.bestTrail = bestTrail;
+            this.bestTrailLength = bestTrail.length();
         }
     }
 
-    private void updateTrails() {
-        for (int i = 0; i < Configuration.INSTANCE.numberOfCities; i++) {
-            for (int j = 0; j < Configuration.INSTANCE.numberOfCities; j++) {
-                trails[i][j] *= Configuration.INSTANCE.evaporation;
-            }
+    private double calculateDivergence(List<Trail> trails) {
+        var trailLen = 0.0;
+        for (var trail : trails) {
+            trailLen += trail.length();
         }
-
-        for (Ant ant : ants) {
-            double contribution = Configuration.INSTANCE.q / ant.trailLength(graph);
-            for (int i = 0; i < Configuration.INSTANCE.numberOfCities - 1; i++) {
-                trails[ant.trail[i]][ant.trail[i + 1]] += contribution;
-            }
-            trails[ant.trail[Configuration.INSTANCE.numberOfCities - 1]][ant.trail[0]] += contribution;
-        }
+        return 1.0 - (this.bestTrailLength / (trailLen / trails.size()));
     }
 
-    private void updateBest() {
-        if (bestTourOrder == null) {
-            bestTourOrder = ants.get(0).trail;
-            bestTourLength = ants.get(0).trailLength(graph);
-        }
-
-        for (Ant ant : ants) {
-            if (ant.trailLength(graph) < bestTourLength) {
-                bestTourLength = ant.trailLength(graph);
-                bestTourOrder = ant.trail.clone();
+    private Trail findBestTrail(List<Trail> trails) {
+        Trail bestTrail = trails.get(0);
+        var bestTrailLength = bestTrail.length();
+        for (int i = 1; i < trails.size(); i++) {
+            if (trails.get(i).length() < bestTrailLength) {
+                bestTrail = trails.get(i);
+                bestTrailLength = bestTrail.length();
             }
         }
-        logger.log(Level.INFO, "best cost:" + bestTourLength);
+
+        log.log(Level.INFO, "Best trail for this iteration with length " + bestTrailLength +
+                " is from ant with id " + bestTrail.getAnt().getId() + ": " +
+                bestTrail.getRoute(bestTrail.getAnt().getId()));
+        return bestTrail;
     }
 
-    private void clearTrails() {
-        for (int i = 0; i < Configuration.INSTANCE.numberOfCities; i++) {
-            for (int j = 0; j < Configuration.INSTANCE.numberOfCities; j++) {
-                trails[i][j] = Configuration.INSTANCE.initialPheromoneValue;
+    public Route run() {
+        setupAnts();
+        initPheromoneMatrix();
+
+        for (int i = 0; i < paramConfig.maxIterations(); i++) {
+            var trails = searchAntSolutions();
+            updateBestSolution(trails);
+            updatePheromoneMatrix(trails);
+            var divergence = calculateDivergence(trails);
+            log.log(Level.INFO, "Iteration: " + i + ", Current best trail length: " + bestTrail.length() +
+                    ", divergence: " + divergence);
+            if (divergence < paramConfig.divergenceToTerminate()) {
+                log.log(Level.INFO, "Break loop after " + i + " iterations because divergence of " +
+                        paramConfig.divergenceToTerminate() + " was reached (divergence = " + divergence + ")");
+                break;
             }
         }
+
+        log.log(Level.INFO, "Algorithm ended because max iterations (" + paramConfig.maxIterations() + ")" +
+                " where reached");
+        executor.shutdownNow();
+        return bestTrail.getRoute(0);
+    }
+
+    // Getter and setter
+
+    public List<City> getNodes() {
+        return cities;
+    }
+
+    public double[][] getDistanceMatrix() {
+        return distanceMatrix;
+    }
+
+    public MersenneTwisterFast getRandomGenerator() {
+        return Configuration.INSTANCE.randomGenerator;
+    }
+
+    public double getAlpha() {
+        return paramConfig.alpha();
+    }
+
+    public double getBeta() {
+        return paramConfig.beta();
+    }
+
+    public double getRandomFactor() {
+        return paramConfig.randomFactor();
     }
 }

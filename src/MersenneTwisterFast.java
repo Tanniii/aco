@@ -2,6 +2,7 @@ import java.io.Serial;
 import java.io.Serializable;
 
 public class MersenneTwisterFast implements Serializable, Cloneable {
+    
     @Serial
     private static final long serialVersionUID = -8219700664442619525L;
 
@@ -22,15 +23,23 @@ public class MersenneTwisterFast implements Serializable, Cloneable {
         setSeed(seed);
     }
 
+    @Override
     public Object clone() {
         try {
-            MersenneTwisterFast mersenneTwisterFast = (MersenneTwisterFast) (super.clone());
+            MersenneTwisterFast mersenneTwisterFast =
+                (MersenneTwisterFast) (super.clone());
             mersenneTwisterFast.mt = mt.clone();
             mersenneTwisterFast.mag01 = mag01.clone();
             return mersenneTwisterFast;
         } catch (CloneNotSupportedException e) {
             throw new InternalError();
         }
+    }
+
+    public MersenneTwisterFast cloneWithSeed(long seed) {
+        var mersenneTwisterFast = (MersenneTwisterFast) this.clone();
+        mersenneTwisterFast.setSeed(seed);
+        return mersenneTwisterFast;
     }
 
     public void setSeed(long seed) {
@@ -41,7 +50,8 @@ public class MersenneTwisterFast implements Serializable, Cloneable {
 
         mt[0] = (int) (seed);
         for (mti = 1; mti < N; mti++) {
-            mt[mti] = (1812433253 * (mt[mti - 1] ^ (mt[mti - 1] >>> 30)) + mti);
+            mt[mti] =
+                (1812433253 * (mt[mti - 1] ^ (mt[mti - 1] >>> 30)) + mti);
         }
     }
 
@@ -105,7 +115,6 @@ public class MersenneTwisterFast implements Serializable, Cloneable {
 
         return ((((long) (y >>> 6)) << 27) + (z >>> 5)) / (double) (1L << 53);
     }
-
     public int nextInt(int n) {
         if (n <= 0)
             throw new IllegalArgumentException("n must be positive | " + n);

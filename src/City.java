@@ -1,38 +1,29 @@
 public class City {
-        private final int x;
-        private final int y;
-        private final String name;
+    private final int name;
+    private final double locationX;
+    private final double locationY;
 
-    public City(int x, int y, String name) {
-        this.x = x;
-        this.y = y;
+    public City(int name, double x, double y) {
         this.name = name;
+        this.locationX = x;
+        this.locationY = y;
     }
 
-    public String getName() {
+    public double distance(City other) {
+        double h = this.getLocationX() - other.getLocationX();
+        var v = this.getLocationY() - other.getLocationY();
+        return Math.sqrt(Math.pow(h, 2) + Math.pow(v, 2));
+    }
+
+    public double getLocationX() {
+        return locationX;
+    }
+
+    public double getLocationY() {
+        return locationY;
+    }
+
+    public int getName() {
         return name;
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public double degree2rad(double degree) {
-        return degree * (Math.PI / 180D);
-    }
-
-    public double distanceBetweenTwoCities(City city) {
-        double degreeLatitude = degree2rad(city.y - y);
-        double degreeLongitude = degree2rad(city.x - x);
-        double a = Math.sin(degreeLatitude / 2) * Math.sin(degreeLatitude / 2) +
-                Math.cos(degree2rad(this.y)) * Math.cos(degree2rad(city.y)) *
-                        Math.sin(degreeLongitude / 2) * Math.sin(degreeLongitude / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-       // return Configuration.INSTANCE.r * c;
-    return c;
     }
 }

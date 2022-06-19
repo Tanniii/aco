@@ -1,55 +1,44 @@
-package test3.agents;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import test3.Node;
-import test3.Route;
 
 public class Trail {
 
     private final Ant ant;
-    private final List<Node> nodes;
+    private final List<City> cities;
     private final double[][] distanceMatrix;
-
     private final int[] trail;
     private final int numOfNodes;
-
     private int currentIndex = 0;
 
-    public Trail(Ant ant, List<Node> nodes, double[][] distanceMatrix) {
+    public Trail(Ant ant, List<City> cities, double[][] distanceMatrix) {
         this.ant = ant;
-        this.nodes = nodes;
+        this.cities = cities;
         this.distanceMatrix = distanceMatrix;
-
-        this.numOfNodes = nodes.size();
+        this.numOfNodes = cities.size();
         this.trail = new int[numOfNodes];
     }
 
-    public void add(int nodeIndex) {
-        trail[currentIndex] = nodeIndex;
+    public void add(int index) {
+        trail[currentIndex] = index;
         currentIndex++;
     }
 
-    public int getNodeIndex(int trailIndex) {
+    public int getCityIndex(int trailIndex) {
         return trail[trailIndex];
     }
 
     public double length() {
-        // First calculate the length from the last to the first node.
         var length = distanceMatrix[trail[numOfNodes - 1]][trail[0]];
-        // Calculate for all nodes from the first to the last.
         for (int i = 0; i < numOfNodes - 1; i++) {
             length += distanceMatrix[trail[i]][trail[i + 1]];
         }
-
         return length;
     }
 
-    public Route toRoute(long routeId) {
-        var nodes = new ArrayList<Node>();
+    public Route getRoute(long routeId) {
+        var nodes = new ArrayList<City>();
         for (var nodeIndex : trail) {
-            nodes.add(this.nodes.get(nodeIndex));
+            nodes.add(this.cities.get(nodeIndex));
         }
 
         return new Route(routeId, nodes);

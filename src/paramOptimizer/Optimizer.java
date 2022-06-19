@@ -1,7 +1,5 @@
 package paramOptimizer;
 
-import test2.Parameters;
-import test2.Program;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

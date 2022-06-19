@@ -1,8 +1,6 @@
-package test3.parmeter;
-
 // This cannot be a record, because Gson cannot get variables.
 @SuppressWarnings("ClassCanBeRecord")
-public class ParameterConfiguration {
+public class Parameters {
 
     private final String tspFile;
     private final int maxIterations;
@@ -14,14 +12,12 @@ public class ParameterConfiguration {
     private final double beta;
     private final double randomFactor;
     private final double divergenceToTerminate;
-    private final PheromoneMatrixUpdateMethod pheromoneMatrixUpdateMethod;
 
-    public ParameterConfiguration(
+    public Parameters(
             String tspFile, int maxIterations, double antsPerNode,
             double initialPheromoneValue, double evaporation, double q,
             double alpha, double beta, double randomFactor,
-            double divergenceToTerminate,
-            PheromoneMatrixUpdateMethod pheromoneMatrixUpdateMethod) {
+            double divergenceToTerminate) {
         this.tspFile = tspFile;
         this.maxIterations = maxIterations;
         this.antsPerNode = antsPerNode;
@@ -32,7 +28,6 @@ public class ParameterConfiguration {
         this.beta = beta;
         this.randomFactor = randomFactor;
         this.divergenceToTerminate = divergenceToTerminate;
-        this.pheromoneMatrixUpdateMethod = pheromoneMatrixUpdateMethod;
     }
 
     public String tspFile() {
@@ -73,9 +68,5 @@ public class ParameterConfiguration {
 
     public double divergenceToTerminate() {
         return divergenceToTerminate;
-    }
-
-    public PheromoneMatrixUpdateMethod pheromoneMatrixUpdateMethod() {
-        return pheromoneMatrixUpdateMethod;
     }
 }
