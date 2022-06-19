@@ -7,10 +7,10 @@ public class Logger {
     public static void loggerStart() {
         try {
             FileHandler fh = new FileHandler("BruteForce.log");
-            AntColonyOptimization.logger.addHandler(fh);
+           // AntColonyOptimization.logger.addHandler(fh);
             SimpleFormatter formatter = new SimpleFormatter();
             fh.setFormatter(formatter);
-            AntColonyOptimization.logger.info("best cost:" + AntColonyOptimization.stringBuilder);
+           // AntColonyOptimization.logger.info("best cost:" + AntColonyOptimization.);
         } catch (SecurityException e) {
             e.printStackTrace();
         } catch (

@@ -136,9 +136,9 @@ public class AntColonyOptimization {
             }
         }
 
-        log.log(Level.INFO, "Best trail for this iteration with length " + bestTrailLength +
-                " is from ant with id " + bestTrail.getAnt().getId() + ": " +
-                bestTrail.getRoute(bestTrail.getAnt().getId()));
+       // log.log(Level.INFO, "Best trail for this iteration with length " + bestTrailLength +
+         //       " is from ant with id " + bestTrail.getAnt().getId() + ": " +
+           //     bestTrail.getRoute(bestTrail.getAnt().getId()));
         return bestTrail;
     }
 
@@ -147,15 +147,15 @@ public class AntColonyOptimization {
         initPheromoneMatrix();
 
         for (int i = 0; i < paramConfig.maxIterations(); i++) {
-            var trails = searchAntSolutions();
+            List<Trail> trails = searchAntSolutions();
             updateBestSolution(trails);
             updatePheromoneMatrix(trails);
-            var divergence = calculateDivergence(trails);
-            log.log(Level.INFO, "Iteration: " + i + ", Current best trail length: " + bestTrail.length() +
-                    ", divergence: " + divergence);
+            double divergence = calculateDivergence(trails);
+            //log.log(Level.INFO, "Iteration: " + i + ", Current best trail length: " + bestTrail.length() +
+                //    ", divergence: " + divergence);
             if (divergence < paramConfig.divergenceToTerminate()) {
-                log.log(Level.INFO, "Break loop after " + i + " iterations because divergence of " +
-                        paramConfig.divergenceToTerminate() + " was reached (divergence = " + divergence + ")");
+                //log.log(Level.INFO, "Break loop after " + i + " iterations because divergence of " +
+                  //      paramConfig.divergenceToTerminate() + " was reached (divergence = " + divergence + ")");
                 break;
             }
         }
