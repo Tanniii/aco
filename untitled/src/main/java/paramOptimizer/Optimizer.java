@@ -62,24 +62,10 @@ public class Optimizer {
         BestParams bestParams = setBestParam();
 
         try {
-
-            // Java objects to JSON file
             mapper.writeValue(new File("params.json"), bestParams);
-
-            // Java objects to JSON string - compact-print
-            String jsonString = mapper.writeValueAsString(bestParams);
-
-            System.out.println(jsonString);
-
-            // Java objects to JSON string - pretty-print
-            String jsonInString2 = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(bestParams);
-
-            System.out.println(jsonInString2);
-
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
 
