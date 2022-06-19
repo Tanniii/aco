@@ -1,3 +1,5 @@
+package aco;
+
 public class City {
     private final int name;
     private final double locationX;

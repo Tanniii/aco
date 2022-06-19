@@ -1,13 +1,20 @@
 package paramOptimizer;
 
 
+import aco.AntColonyOptimization;
+import aco.City;
+
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static aco.App.loadCities;
 
 public class Optimizer {
     private static double bestSoFar;
     private static double[] bestVal;
     public void runOpti() throws Exception {
+        List<City> cities = loadCities();
         bestSoFar = Double.MAX_VALUE;
         bestVal = new double[] {0,0,0,0};
         long counter =0l;
@@ -22,6 +29,7 @@ public class Optimizer {
                         final double c = k;
                         final double d = l;
                         counter++;
+                       // new AntColonyOptimization(cities);
                        // executorService.submit(() -> {
                             try {
                                 //runSolving(a, b, c, d);

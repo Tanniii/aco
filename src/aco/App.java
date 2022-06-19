@@ -1,3 +1,5 @@
+package aco;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -26,7 +28,7 @@ public class App {
         return optimizer.run();
     }
 
-    private static List<City> loadCities() {
+    public static List<City> loadCities() {
         ArrayList<City> cities = new ArrayList<>();
         try {
             Scanner input = new Scanner(new File(Configuration.INSTANCE.dataDirectory + "a280.tsp"));

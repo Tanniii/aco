@@ -1,3 +1,5 @@
+package aco;
+
 // This cannot be a record, because Gson cannot get variables.
 @SuppressWarnings("ClassCanBeRecord")
 public class Parameters {
