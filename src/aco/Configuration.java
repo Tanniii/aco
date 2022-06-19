@@ -11,7 +11,6 @@ public enum Configuration {
 
     public final Parameters defaultParamConfig =
             new Parameters(
-                    "a280.tsp",
                     3000,
                     0.8,
                     1.0,

@@ -4,7 +4,6 @@ package aco;
 @SuppressWarnings("ClassCanBeRecord")
 public class Parameters {
 
-    private final String tspFile;
     private final int maxIterations;
     private final double antsPerNode;
     private final double initialPheromoneValue;
@@ -16,11 +15,10 @@ public class Parameters {
     private final double divergenceToTerminate;
 
     public Parameters(
-            String tspFile, int maxIterations, double antsPerNode,
+            int maxIterations, double antsPerNode,
             double initialPheromoneValue, double evaporation, double q,
             double alpha, double beta, double randomFactor,
             double divergenceToTerminate) {
-        this.tspFile = tspFile;
         this.maxIterations = maxIterations;
         this.antsPerNode = antsPerNode;
         this.initialPheromoneValue = initialPheromoneValue;
@@ -32,9 +30,7 @@ public class Parameters {
         this.divergenceToTerminate = divergenceToTerminate;
     }
 
-    public String tspFile() {
-        return tspFile;
-    }
+
 
     public int maxIterations() {
         return maxIterations;
