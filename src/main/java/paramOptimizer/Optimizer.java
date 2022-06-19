@@ -80,8 +80,6 @@ public class Optimizer {
         bestParams.setBeta(bestVal[1]);
         bestParams.setEvaporation(bestVal[2]);
         bestParams.setAntFactor(bestVal[3]);
-        bestParams.setBestTrailLength(bestSoFar);
-
         return bestParams;
     }
 }
